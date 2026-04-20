@@ -6,11 +6,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(
-                title = "PetControl API",
-                version = "1.0",
-                summary = "API para gerenciamento de animais."
-        )
-)
-public class SwaggerConfig {
-}
+    info =
+        @Info(
+            title = "PetControl API",
+            version = "1.0",
+            summary = "API para gerenciamento de animais."))
+public class SwaggerConfig {}
