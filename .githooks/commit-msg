@@ -1,0 +1,19 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+
+PROJECT_KEY="PETCONTROL"
+
+REGEX="^\[$PROJECT_KEY-[0-9]{3}\] (feat|hotfix|fix|test|docs|chore|refactor|build): .+"
+
+if [[ ! $COMMIT_MSG =~ $REGEX ]]; then
+    echo "[ERROR] Invalid commit message format."
+    echo "> Expected pattern: [$PROJECT_KEY-ID] type: description"
+    echo "> Example: [$PROJECT_KEY-002] feat: add animal endpoint"
+    echo "> Allowed types: feat, hotfix, fix, test, docs, chore, refactor, build"
+    exit 1
+fi
+
+exit 0
