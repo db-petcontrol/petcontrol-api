@@ -29,6 +29,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<org.mapstruct.version>1.6.3</org.mapstruct.version>
+    <skip.git.hooks>false</skip.git.hooks>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -199,6 +200,24 @@
 					</java>
 				</configuration>
 			</plugin>
+      <plugin>
+        <groupId>com.rudikershaw.gitbuildhook</groupId>
+        <artifactId>git-build-hook-maven-plugin</artifactId>
+        <version>3.6.0</version>
+        <configuration>
+          <skip>${skip.git.hooks}</skip>
+          <gitConfig>
+            <core.hooksPath>.githooks/</core.hooksPath>
+          </gitConfig>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>configure</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 		</plugins>
 	</build>
 

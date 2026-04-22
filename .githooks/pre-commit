@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+echo "[INFO] Checking code style and formatting..."
+
+if ! mvn spotless:check; then
+    echo ""
+    echo "[ERROR] Formatting violations found!"
+    echo "> Please run 'mvn spotless:apply' to fix them, stage the changes and try again."
+    exit 1
+fi
+
+if ! mvn checkstyle:check; then
+    echo ""
+    echo "[ERROR] Static analysis (Checkstyle) violations found!"
+    echo "> Please fix the issues reported above before committing."
+    exit 1
+fi
+
+echo "[OK] Checks passed."
+exit 0
