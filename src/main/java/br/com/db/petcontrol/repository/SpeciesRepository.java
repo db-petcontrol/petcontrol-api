@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SpeciesRepository extends JpaRepository<Species, UUID> {
+
   List<Species> findAllByOrderByNameAsc();
 }

@@ -1,6 +1,6 @@
-package br.com.db.petcontrol.controlle.impl;
+package br.com.db.petcontrol.controller.impl;
 
-import br.com.db.petcontrol.controlle.SpeciesController;
+import br.com.db.petcontrol.controller.SpeciesController;
 import br.com.db.petcontrol.dto.response.SpeciesResponseDTO;
 import br.com.db.petcontrol.service.SpeciesService;
 import java.util.List;
