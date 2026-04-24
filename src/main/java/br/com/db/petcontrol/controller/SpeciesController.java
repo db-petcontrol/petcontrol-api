@@ -1,4 +1,4 @@
-package br.com.db.petcontrol.controlle;
+package br.com.db.petcontrol.controller;
 
 import br.com.db.petcontrol.dto.response.SpeciesResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
