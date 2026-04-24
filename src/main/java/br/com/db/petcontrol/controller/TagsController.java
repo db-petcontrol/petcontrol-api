@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Tags", description = "Operações para listagem de tags disponíveis")
-@RequestMapping("/Tags")
+@RequestMapping("/tags")
 public interface TagsController {
 
   @Operation(
