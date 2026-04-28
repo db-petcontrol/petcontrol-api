@@ -1,6 +1,7 @@
 package br.com.db.petcontrol.dto.request;
 
 import br.com.db.petcontrol.model.enums.PetStatus;
+import br.com.db.petcontrol.validation.petstatusforcreation.ValidPetStatusForCreation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import lombok.Builder;
 
 @Builder
+@ValidPetStatusForCreation
 public record PetRequestDTO(
     @NotBlank @Schema(description = "Nome do pet", example = "Lily") String name,
     @NotNull
