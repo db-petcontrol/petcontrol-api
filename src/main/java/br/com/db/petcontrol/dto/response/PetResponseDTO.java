@@ -1,6 +1,6 @@
 package br.com.db.petcontrol.dto.response;
 
-import br.com.db.petcontrol.model.enums.PetStatus;
+import br.com.db.petcontrol.enums.PetStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.UUID;

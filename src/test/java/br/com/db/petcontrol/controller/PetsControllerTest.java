@@ -12,10 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.com.db.petcontrol.controller.impl.PetsControllerImpl;
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
-import br.com.db.petcontrol.mapper.PetsMapper;
+import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.mocks.PetsFixture;
-import br.com.db.petcontrol.model.Pets;
-import br.com.db.petcontrol.model.enums.PetStatus;
 import br.com.db.petcontrol.service.PetsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -35,7 +33,6 @@ class PetsControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private PetsService petsService;
-  @MockitoBean private PetsMapper petsMapper;
 
   private static final String PETS_URL = "/pets";
 
@@ -46,10 +43,8 @@ class PetsControllerTest {
     void shouldCreatePetAndReturnCreatedStatus() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().build();
       PetResponseDTO response = PetsFixture.responseDtoBuilder().build();
-      Pets createdPet = PetsFixture.builder().build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -63,11 +58,9 @@ class PetsControllerTest {
     @Test
     void shouldReturnPetWithCorrectNameInResponse() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().name("Bolinha").build();
-      Pets createdPet = PetsFixture.builder().name("Bolinha").build();
       PetResponseDTO response = PetsFixture.responseDtoBuilder().name("Bolinha").build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -82,11 +75,9 @@ class PetsControllerTest {
     void shouldReturnPetWithCorrectIdInResponse() throws Exception {
       UUID petId = UUID.randomUUID();
       PetRequestDTO request = PetsFixture.requestDtoBuilder().build();
-      Pets createdPet = PetsFixture.builder().id(petId).build();
       PetResponseDTO response = PetsFixture.responseDtoBuilder().id(petId).build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -100,12 +91,10 @@ class PetsControllerTest {
     @Test
     void shouldReturnPetWithCorrectStatusInResponse() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().status(PetStatus.AVAILABLE).build();
-      Pets createdPet = PetsFixture.builder().status(PetStatus.AVAILABLE).build();
       PetResponseDTO response =
           PetsFixture.responseDtoBuilder().status(PetStatus.AVAILABLE).build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -119,11 +108,9 @@ class PetsControllerTest {
     @Test
     void shouldReturnPetWithCorrectSpeciesInResponse() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().build();
-      Pets createdPet = PetsFixture.builder().build();
       PetResponseDTO response = PetsFixture.responseDtoBuilder().species("Gato").build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -137,11 +124,9 @@ class PetsControllerTest {
     @Test
     void shouldReturnPetWithEmptyTagsInResponse() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().tagsIds(List.of()).build();
-      Pets createdPet = PetsFixture.builder().build();
       PetResponseDTO response = PetsFixture.responseDtoBuilder().tags(List.of()).build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -153,13 +138,11 @@ class PetsControllerTest {
     }
 
     @Test
-    void shouldCallServiceAndMapperWithCorrectArguments() throws Exception {
+    void shouldCallServiceWithCorrectArguments() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().build();
-      Pets createdPet = PetsFixture.builder().build();
       PetResponseDTO response = PetsFixture.responseDtoBuilder().build();
 
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
+      when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
       mockMvc
           .perform(
@@ -169,7 +152,6 @@ class PetsControllerTest {
           .andExpect(status().isCreated());
 
       verify(petsService).create(any(PetRequestDTO.class));
-      verify(petsMapper).toResponse(createdPet);
     }
   }
 }

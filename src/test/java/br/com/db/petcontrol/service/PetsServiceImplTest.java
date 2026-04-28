@@ -9,6 +9,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
+import br.com.db.petcontrol.dto.response.PetResponseDTO;
+import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.exception.NotFoundException;
 import br.com.db.petcontrol.mapper.PetsMapper;
 import br.com.db.petcontrol.mocks.PetsFixture;
@@ -17,7 +19,6 @@ import br.com.db.petcontrol.mocks.TagsFixture;
 import br.com.db.petcontrol.model.Pets;
 import br.com.db.petcontrol.model.Species;
 import br.com.db.petcontrol.model.Tags;
-import br.com.db.petcontrol.model.enums.PetStatus;
 import br.com.db.petcontrol.repository.PetsRepository;
 import br.com.db.petcontrol.repository.SpeciesRepository;
 import br.com.db.petcontrol.repository.TagsRepository;
@@ -59,18 +60,21 @@ class PetsServiceImplTest {
       Species species = SpeciesFixture.builder().id(speciesId).name("Cachorro").build();
       PetRequestDTO dto = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
       Pets expectedPet = PetsFixture.builder().species(species).build();
+      PetResponseDTO expectedResponse =
+          PetsFixture.responseDtoBuilder().species("Cachorro").build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
       when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
           .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
+      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
-      Pets result = service.create(dto);
+      PetResponseDTO result = service.create(dto);
 
       assertThat(result).isNotNull();
-      assertThat(result.getName()).isEqualTo(expectedPet.getName());
-      assertThat(result.getSpecies()).isEqualTo(species);
+      assertThat(result.name()).isEqualTo(expectedResponse.name());
+      assertThat(result.species()).isEqualTo("Cachorro");
     }
 
     @Test
@@ -80,16 +84,18 @@ class PetsServiceImplTest {
       Species species = SpeciesFixture.builder().id(speciesId).build();
       PetRequestDTO dto = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
       Pets expectedPet = PetsFixture.builder().id(petId).species(species).build();
+      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().id(petId).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
       when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
           .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
+      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
-      Pets result = service.create(dto);
+      PetResponseDTO result = service.create(dto);
 
-      assertThat(result.getId()).isEqualTo(petId);
+      assertThat(result.id()).isEqualTo(petId);
     }
 
     @Test
@@ -119,15 +125,18 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(tagIds).build();
       Pets expectedPet = PetsFixture.builder().species(species).tags(tags).build();
+      PetResponseDTO expectedResponse =
+          PetsFixture.responseDtoBuilder().tags(List.of(tag1.getName(), tag2.getName())).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(tagIds)).thenReturn(tags);
       when(petsMapper.toEntity(dto, species, tags)).thenReturn(expectedPet);
       when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
+      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
-      Pets result = service.create(dto);
+      PetResponseDTO result = service.create(dto);
 
-      assertThat(result.getTags()).hasSize(2).containsExactlyInAnyOrder(tag1, tag2);
+      assertThat(result.tags()).hasSize(2);
     }
 
     @Test
@@ -137,16 +146,18 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(List.of()).build();
       Pets expectedPet = PetsFixture.builder().species(species).tags(List.of()).build();
+      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().tags(List.of()).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
       when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
           .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
+      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
-      Pets result = service.create(dto);
+      PetResponseDTO result = service.create(dto);
 
-      assertThat(result.getTags()).isEmpty();
+      assertThat(result.tags()).isEmpty();
     }
 
     @Test
@@ -156,16 +167,19 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).status(PetStatus.AVAILABLE).build();
       Pets expectedPet = PetsFixture.builder().species(species).status(PetStatus.AVAILABLE).build();
+      PetResponseDTO expectedResponse =
+          PetsFixture.responseDtoBuilder().status(PetStatus.AVAILABLE).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
       when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
           .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
+      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
-      Pets result = service.create(dto);
+      PetResponseDTO result = service.create(dto);
 
-      assertThat(result.getStatus()).isEqualTo(PetStatus.AVAILABLE);
+      assertThat(result.status()).isEqualTo(PetStatus.AVAILABLE);
     }
 
     @Test
@@ -179,11 +193,13 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(tagIds).build();
       Pets expectedPet = PetsFixture.builder().build();
+      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(tagIds)).thenReturn(tags);
       when(petsMapper.toEntity(dto, species, tags)).thenReturn(expectedPet);
       when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
+      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
       service.create(dto);
 
@@ -191,6 +207,7 @@ class PetsServiceImplTest {
       verify(tagRepository).findAllById(tagIds);
       verify(petsMapper).toEntity(dto, species, tags);
       verify(petRepository).saveAndFlush(expectedPet);
+      verify(petsMapper).toResponse(expectedPet);
     }
 
     @Test
@@ -201,16 +218,18 @@ class PetsServiceImplTest {
       PetRequestDTO dto = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
       Pets mappedPet = PetsFixture.builder().build();
       Pets persistedPet = PetsFixture.builder().id(persistedId).species(species).build();
+      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().id(persistedId).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
       when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
           .thenReturn(mappedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(persistedPet);
+      when(petsMapper.toResponse(persistedPet)).thenReturn(expectedResponse);
 
-      Pets result = service.create(dto);
+      PetResponseDTO result = service.create(dto);
 
-      assertThat(result.getId()).isEqualTo(persistedId);
+      assertThat(result.id()).isEqualTo(persistedId);
     }
 
     @Test

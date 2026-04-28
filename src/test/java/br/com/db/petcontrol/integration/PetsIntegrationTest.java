@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
+import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.model.Species;
 import br.com.db.petcontrol.model.Tags;
-import br.com.db.petcontrol.model.enums.PetStatus;
 import br.com.db.petcontrol.repository.PetsRepository;
 import br.com.db.petcontrol.repository.SpeciesRepository;
 import br.com.db.petcontrol.repository.TagsRepository;
