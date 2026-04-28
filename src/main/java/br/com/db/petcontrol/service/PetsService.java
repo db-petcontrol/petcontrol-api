@@ -1,8 +1,8 @@
 package br.com.db.petcontrol.service;
 
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
-import br.com.db.petcontrol.model.Pets;
+import br.com.db.petcontrol.dto.response.PetResponseDTO;
 
 public interface PetsService {
-  Pets create(PetRequestDTO dto);
+  PetResponseDTO create(PetRequestDTO dto);
 }

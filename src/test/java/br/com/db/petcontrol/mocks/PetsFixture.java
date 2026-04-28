@@ -2,8 +2,8 @@ package br.com.db.petcontrol.mocks;
 
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
+import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.model.Pets;
-import br.com.db.petcontrol.model.enums.PetStatus;
 import java.util.List;
 import java.util.UUID;
 

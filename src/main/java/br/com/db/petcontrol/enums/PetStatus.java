@@ -1,4 +1,4 @@
-package br.com.db.petcontrol.model.enums;
+package br.com.db.petcontrol.enums;
 
 public enum PetStatus {
   AVAILABLE,

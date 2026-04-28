@@ -27,12 +27,5 @@ public interface PetsController {
               schema = @Schema(implementation = PetResponseDTO.class)))
   @ApiResponse(responseCode = "404", description = "Espécie não encontrada")
   @PostMapping
-  ResponseEntity<PetResponseDTO> create(
-      @io.swagger.v3.oas.annotations.parameters.RequestBody(
-              description = "Dados do pet a ser cadastrado",
-              required = true,
-              content = @Content(schema = @Schema(implementation = PetRequestDTO.class)))
-          @Valid
-          @RequestBody
-          PetRequestDTO dto);
+  ResponseEntity<PetResponseDTO> create(@Valid @RequestBody PetRequestDTO dto);
 }

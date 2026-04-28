@@ -1,6 +1,6 @@
 package br.com.db.petcontrol.model;
 
-import br.com.db.petcontrol.model.enums.PetStatus;
+import br.com.db.petcontrol.enums.PetStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
