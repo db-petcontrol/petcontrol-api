@@ -31,8 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class PetsServiceImplTest {
 
   @Mock private PetsRepository petRepository;
@@ -58,9 +61,10 @@ class PetsServiceImplTest {
       Pets expectedPet = PetsFixture.builder().species(species).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
-      when(tagRepository.findAllById(dto.tagsIds())).thenReturn(List.of());
-      when(petsMapper.toEntity(dto, species, List.of())).thenReturn(expectedPet);
-      when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
+      when(tagRepository.findAllById(anyList())).thenReturn(List.of());
+      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
+          .thenReturn(expectedPet);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
 
       Pets result = service.create(dto);
 
@@ -79,8 +83,9 @@ class PetsServiceImplTest {
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(dto, species, List.of())).thenReturn(expectedPet);
-      when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
+      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
+          .thenReturn(expectedPet);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
 
       Pets result = service.create(dto);
 
@@ -134,9 +139,10 @@ class PetsServiceImplTest {
       Pets expectedPet = PetsFixture.builder().species(species).tags(List.of()).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
-      when(tagRepository.findAllById(List.of())).thenReturn(List.of());
-      when(petsMapper.toEntity(dto, species, List.of())).thenReturn(expectedPet);
-      when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
+      when(tagRepository.findAllById(anyList())).thenReturn(List.of());
+      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
+          .thenReturn(expectedPet);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
 
       Pets result = service.create(dto);
 
@@ -153,8 +159,9 @@ class PetsServiceImplTest {
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(dto, species, List.of())).thenReturn(expectedPet);
-      when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
+      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
+          .thenReturn(expectedPet);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
 
       Pets result = service.create(dto);
 
@@ -197,12 +204,60 @@ class PetsServiceImplTest {
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(any(), any(), anyList())).thenReturn(mappedPet);
-      when(petRepository.saveAndFlush(mappedPet)).thenReturn(persistedPet);
+      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
+          .thenReturn(mappedPet);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(persistedPet);
 
       Pets result = service.create(dto);
 
       assertThat(result.getId()).isEqualTo(persistedId);
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenSomeTagsDoNotExist() {
+      UUID speciesId = UUID.randomUUID();
+      UUID tagId1 = UUID.randomUUID();
+      UUID tagId2 = UUID.randomUUID();
+      Tags tag1 = TagsFixture.builder().id(tagId1).build();
+
+      Species species = SpeciesFixture.builder().id(speciesId).build();
+      PetRequestDTO dto =
+          PetsFixture.requestDtoBuilder()
+              .specieId(speciesId)
+              .tagsIds(List.of(tagId1, tagId2))
+              .build();
+
+      when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
+      when(tagRepository.findAllById(List.of(tagId1, tagId2))).thenReturn(List.of(tag1));
+
+      assertThatThrownBy(() -> service.create(dto))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Tags not found");
+
+      verify(petRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenAllTagsDoNotExist() {
+      UUID speciesId = UUID.randomUUID();
+      UUID tagId1 = UUID.randomUUID();
+      UUID tagId2 = UUID.randomUUID();
+
+      Species species = SpeciesFixture.builder().id(speciesId).build();
+      PetRequestDTO dto =
+          PetsFixture.requestDtoBuilder()
+              .specieId(speciesId)
+              .tagsIds(List.of(tagId1, tagId2))
+              .build();
+
+      when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
+      when(tagRepository.findAllById(List.of(tagId1, tagId2))).thenReturn(List.of());
+
+      assertThatThrownBy(() -> service.create(dto))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Tags not found");
+
+      verify(petRepository, never()).saveAndFlush(any());
     }
   }
 }

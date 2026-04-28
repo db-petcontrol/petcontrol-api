@@ -211,6 +211,44 @@ class PetsIntegrationTest {
     }
 
     @Test
+    void shouldReturnNotFoundWhenSomeTagsDoNotExist() {
+      Tags tag1 = tagsRepository.save(new Tags(null, "Vacinado"));
+      UUID nonExistentTagId = UUID.randomUUID();
+
+      PetRequestDTO request =
+          PetRequestDTO.builder()
+              .name("Bingo")
+              .specieId(savedSpecies.getId())
+              .status(PetStatus.AVAILABLE)
+              .tagsIds(List.of(tag1.getId(), nonExistentTagId))
+              .build();
+
+      ResponseEntity<PetResponseDTO> response =
+          restTemplate.postForEntity(PETS_URL, request, PetResponseDTO.class);
+
+      assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenAllTagsDoNotExist() {
+      UUID nonExistentTagId1 = UUID.randomUUID();
+      UUID nonExistentTagId2 = UUID.randomUUID();
+
+      PetRequestDTO request =
+          PetRequestDTO.builder()
+              .name("Spike")
+              .specieId(savedSpecies.getId())
+              .status(PetStatus.AVAILABLE)
+              .tagsIds(List.of(nonExistentTagId1, nonExistentTagId2))
+              .build();
+
+      ResponseEntity<PetResponseDTO> response =
+          restTemplate.postForEntity(PETS_URL, request, PetResponseDTO.class);
+
+      assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
     void shouldNotPersistPetWhenSpeciesDoesNotExist() {
       PetRequestDTO request =
           PetRequestDTO.builder()

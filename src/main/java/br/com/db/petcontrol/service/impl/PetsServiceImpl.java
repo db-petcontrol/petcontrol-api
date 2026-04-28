@@ -10,7 +10,9 @@ import br.com.db.petcontrol.repository.PetsRepository;
 import br.com.db.petcontrol.repository.SpeciesRepository;
 import br.com.db.petcontrol.repository.TagsRepository;
 import br.com.db.petcontrol.service.PetsService;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +26,30 @@ public class PetsServiceImpl implements PetsService {
   private final PetsMapper petsMapper;
 
   public Pets create(PetRequestDTO dto) {
-    Species species =
-        speciesRepository
-            .findById(dto.specieId())
-            .orElseThrow(() -> new NotFoundException("Species not found: " + dto.specieId()));
+    List<String> errors = new ArrayList<>();
 
-    List<Tags> tags = tagRepository.findAllById(dto.tagsIds());
+    Species species = speciesRepository.findById(dto.specieId()).orElse(null);
+    if (species == null) {
+      errors.add("Species not found: " + dto.specieId());
+    }
+
+    List<Tags> tags = List.of();
+    if (dto.tagsIds() != null && !dto.tagsIds().isEmpty()) {
+      List<Tags> foundTags = tagRepository.findAllById(dto.tagsIds());
+      if (foundTags.size() != dto.tagsIds().size()) {
+        List<UUID> notFoundIds =
+            dto.tagsIds().stream()
+                .filter(id -> foundTags.stream().noneMatch(tag -> tag.getId().equals(id)))
+                .toList();
+        errors.add("Tags not found: " + notFoundIds);
+      } else {
+        tags = foundTags;
+      }
+    }
+
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(errors);
+    }
 
     Pets pet = petsMapper.toEntity(dto, species, tags);
     return petRepository.saveAndFlush(pet);

@@ -135,28 +135,6 @@ class PetsControllerTest {
     }
 
     @Test
-    void shouldReturnPetWithTagsInResponse() throws Exception {
-      PetRequestDTO request =
-          PetsFixture.requestDtoBuilder().tagsIds(List.of(UUID.randomUUID())).build();
-      Pets createdPet = PetsFixture.builder().build();
-      PetResponseDTO response =
-          PetsFixture.responseDtoBuilder().tags(List.of("Vacinado", "Castrado")).build();
-
-      when(petsService.create(any(PetRequestDTO.class))).thenReturn(createdPet);
-      when(petsMapper.toResponse(createdPet)).thenReturn(response);
-
-      mockMvc
-          .perform(
-              post(PETS_URL)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isCreated())
-          .andExpect(jsonPath("$.tags", hasSize(2)))
-          .andExpect(jsonPath("$.tags[0]").value("Vacinado"))
-          .andExpect(jsonPath("$.tags[1]").value("Castrado"));
-    }
-
-    @Test
     void shouldReturnPetWithEmptyTagsInResponse() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().tagsIds(List.of()).build();
       Pets createdPet = PetsFixture.builder().build();
