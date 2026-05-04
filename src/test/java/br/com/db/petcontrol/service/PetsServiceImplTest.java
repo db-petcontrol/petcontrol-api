@@ -1,7 +1,10 @@
 package br.com.db.petcontrol.service;
 
+import static br.com.db.petcontrol.mocks.PageFixture.DEFAULT_PAGE;
+import static br.com.db.petcontrol.mocks.PageFixture.DEFAULT_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
@@ -9,11 +12,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
+import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.exception.NotFoundException;
 import br.com.db.petcontrol.mapper.PageMapper;
 import br.com.db.petcontrol.mapper.PetsMapper;
+import br.com.db.petcontrol.mocks.PageFixture;
 import br.com.db.petcontrol.mocks.PetsFixture;
 import br.com.db.petcontrol.mocks.SpeciesFixture;
 import br.com.db.petcontrol.mocks.TagsFixture;
@@ -31,10 +36,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -43,13 +50,17 @@ class PetsServiceImplTest {
   @Mock private PetsRepository petRepository;
   @Mock private SpeciesRepository speciesRepository;
   @Mock private TagsRepository tagRepository;
-  @Mock private PetsMapper petsMapper;
-  @Mock private PageMapper pageMapper;
+
+  private PetsMapper petsMapper;
+  private PageMapper pageMapper;
 
   private PetsServiceImpl service;
 
   @BeforeEach
   void setUp() {
+    petsMapper = Mappers.getMapper(PetsMapper.class);
+    pageMapper = Mappers.getMapper(PageMapper.class);
+
     service =
         new PetsServiceImpl(
             petRepository, speciesRepository, tagRepository, petsMapper, pageMapper);
@@ -64,20 +75,15 @@ class PetsServiceImplTest {
       Species species = SpeciesFixture.builder().id(speciesId).name("Cachorro").build();
       PetRequestDTO dto = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
       Pets expectedPet = PetsFixture.builder().species(species).build();
-      PetResponseDTO expectedResponse =
-          PetsFixture.responseDtoBuilder().species("Cachorro").build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
-          .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
-      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
       PetResponseDTO result = service.create(dto);
 
       assertThat(result).isNotNull();
-      assertThat(result.name()).isEqualTo(expectedResponse.name());
+      assertThat(result.name()).isEqualTo(expectedPet.getName());
       assertThat(result.species()).isEqualTo("Cachorro");
     }
 
@@ -88,14 +94,10 @@ class PetsServiceImplTest {
       Species species = SpeciesFixture.builder().id(speciesId).build();
       PetRequestDTO dto = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
       Pets expectedPet = PetsFixture.builder().id(petId).species(species).build();
-      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().id(petId).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
-          .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
-      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
       PetResponseDTO result = service.create(dto);
 
@@ -114,7 +116,6 @@ class PetsServiceImplTest {
           .hasMessageContaining("Species not found: " + nonExistentSpeciesId);
 
       verify(petRepository, never()).saveAndFlush(any());
-      verify(petsMapper, never()).toEntity(any(), any(), anyList());
     }
 
     @Test
@@ -129,14 +130,10 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(tagIds).build();
       Pets expectedPet = PetsFixture.builder().species(species).tags(tags).build();
-      PetResponseDTO expectedResponse =
-          PetsFixture.responseDtoBuilder().tags(List.of(tag1.getName(), tag2.getName())).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(tagIds)).thenReturn(tags);
-      when(petsMapper.toEntity(dto, species, tags)).thenReturn(expectedPet);
-      when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
-      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
 
       PetResponseDTO result = service.create(dto);
 
@@ -150,14 +147,10 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(List.of()).build();
       Pets expectedPet = PetsFixture.builder().species(species).tags(List.of()).build();
-      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().tags(List.of()).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
-          .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
-      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
       PetResponseDTO result = service.create(dto);
 
@@ -171,47 +164,14 @@ class PetsServiceImplTest {
       PetRequestDTO dto =
           PetsFixture.requestDtoBuilder().specieId(speciesId).status(PetStatus.AVAILABLE).build();
       Pets expectedPet = PetsFixture.builder().species(species).status(PetStatus.AVAILABLE).build();
-      PetResponseDTO expectedResponse =
-          PetsFixture.responseDtoBuilder().status(PetStatus.AVAILABLE).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
-          .thenReturn(expectedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(expectedPet);
-      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
 
       PetResponseDTO result = service.create(dto);
 
       assertThat(result.status()).isEqualTo(PetStatus.AVAILABLE);
-    }
-
-    @Test
-    void shouldCallAllRepositoriesWithCorrectArguments() {
-      UUID speciesId = UUID.randomUUID();
-      Tags tag = TagsFixture.builder().build();
-      List<UUID> tagIds = List.of(tag.getId());
-      List<Tags> tags = List.of(tag);
-
-      Species species = SpeciesFixture.builder().id(speciesId).build();
-      PetRequestDTO dto =
-          PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(tagIds).build();
-      Pets expectedPet = PetsFixture.builder().build();
-      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().build();
-
-      when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
-      when(tagRepository.findAllById(tagIds)).thenReturn(tags);
-      when(petsMapper.toEntity(dto, species, tags)).thenReturn(expectedPet);
-      when(petRepository.saveAndFlush(expectedPet)).thenReturn(expectedPet);
-      when(petsMapper.toResponse(expectedPet)).thenReturn(expectedResponse);
-
-      service.create(dto);
-
-      verify(speciesRepository).findById(speciesId);
-      verify(tagRepository).findAllById(tagIds);
-      verify(petsMapper).toEntity(dto, species, tags);
-      verify(petRepository).saveAndFlush(expectedPet);
-      verify(petsMapper).toResponse(expectedPet);
     }
 
     @Test
@@ -220,16 +180,11 @@ class PetsServiceImplTest {
       UUID persistedId = UUID.randomUUID();
       Species species = SpeciesFixture.builder().id(speciesId).build();
       PetRequestDTO dto = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
-      Pets mappedPet = PetsFixture.builder().build();
       Pets persistedPet = PetsFixture.builder().id(persistedId).species(species).build();
-      PetResponseDTO expectedResponse = PetsFixture.responseDtoBuilder().id(persistedId).build();
 
       when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
       when(tagRepository.findAllById(anyList())).thenReturn(List.of());
-      when(petsMapper.toEntity(any(PetRequestDTO.class), any(Species.class), anyList()))
-          .thenReturn(mappedPet);
       when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(persistedPet);
-      when(petsMapper.toResponse(persistedPet)).thenReturn(expectedResponse);
 
       PetResponseDTO result = service.create(dto);
 
@@ -281,6 +236,40 @@ class PetsServiceImplTest {
           .hasMessageContaining("Tags not found");
 
       verify(petRepository, never()).saveAndFlush(any());
+    }
+  }
+
+  @Nested
+  class FindPetsTests {
+    @Test
+    void shouldReturnPaginatedListOfPets() {
+      List<Pets> pets =
+          List.of(PetsFixture.builder().build(), PetsFixture.builder().name("Lily").build());
+
+      when(petRepository.findAll(any(Pageable.class))).thenReturn(PageFixture.getPageMock(pets));
+
+      PageResponseDTO<PetResponseDTO> response =
+          service.findAll(PageFixture.pageableRequestDtoBuilder().build());
+
+      List<UUID> petIds = pets.stream().map(Pets::getId).toList();
+      List<UUID> responseIds = response.content().stream().map(PetResponseDTO::id).toList();
+
+      assertThat(responseIds).containsExactlyInAnyOrderElementsOf(petIds);
+      assertEquals(DEFAULT_SIZE, response.size());
+      assertEquals(DEFAULT_PAGE, response.number());
+    }
+
+    @Test
+    void shouldReturnEmptyPageWhenNoPetsFound() {
+      when(petRepository.findAll(any(Pageable.class)))
+          .thenReturn(PageFixture.getPageMock(List.of()));
+
+      PageResponseDTO<PetResponseDTO> response =
+          service.findAll(PageFixture.pageableRequestDtoBuilder().build());
+
+      assertThat(response.content()).isEmpty();
+      assertEquals(DEFAULT_SIZE, response.size());
+      assertEquals(DEFAULT_PAGE, response.number());
     }
   }
 }
