@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.util.List;
 import java.util.UUID;
@@ -49,5 +50,6 @@ public class Pets {
       name = "tb_pet_tags",
       joinColumns = @JoinColumn(name = "pet_id"),
       inverseJoinColumns = @JoinColumn(name = "tag_id"))
+  @OrderBy("name ASC")
   private List<Tags> tags;
 }

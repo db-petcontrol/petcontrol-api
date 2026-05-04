@@ -4,22 +4,30 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.db.petcontrol.controller.impl.PetsControllerImpl;
+import br.com.db.petcontrol.dto.request.PageableRequestDTO;
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
+import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
+import br.com.db.petcontrol.mocks.PageFixture;
 import br.com.db.petcontrol.mocks.PetsFixture;
 import br.com.db.petcontrol.service.PetsService;
+import br.com.db.petcontrol.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -152,6 +160,30 @@ class PetsControllerTest {
           .andExpect(status().isCreated());
 
       verify(petsService).create(any(PetRequestDTO.class));
+    }
+  }
+
+  @Nested
+  class FindPetsTests {
+    @ParameterizedTest
+    @MethodSource("petsProviders")
+    void shouldReturnAllPetsWithCorrectPagination(List<PetResponseDTO> pets) throws Exception {
+      PageableRequestDTO pageable = PageFixture.pageableRequestDtoBuilder().build();
+      PageResponseDTO page = PageFixture.pageResponseDtoBuilder(pets).build();
+
+      when(petsService.findAll(pageable)).thenReturn(page);
+
+      mockMvc
+          .perform(get(PETS_URL).contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().json(JsonUtils.convertToJson(page)));
+    }
+
+    static Stream<List<PetResponseDTO>> petsProviders() {
+      return Stream.of(
+          List.of(
+              PetsFixture.responseDtoBuilder().build(), PetsFixture.responseDtoBuilder().build()),
+          List.of());
     }
   }
 }

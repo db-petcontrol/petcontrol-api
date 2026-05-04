@@ -1,11 +1,15 @@
 package br.com.db.petcontrol.integration;
 
+import static br.com.db.petcontrol.mocks.PageFixture.DEFAULT_PAGE;
+import static br.com.db.petcontrol.mocks.PageFixture.DEFAULT_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
+import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
+import br.com.db.petcontrol.model.Pets;
 import br.com.db.petcontrol.model.Species;
 import br.com.db.petcontrol.model.Tags;
 import br.com.db.petcontrol.repository.PetsRepository;
@@ -20,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -261,6 +267,95 @@ class PetsIntegrationTest {
       restTemplate.postForEntity(PETS_URL, request, PetResponseDTO.class);
 
       assertThat(petsRepository.findAll()).isEmpty();
+    }
+  }
+
+  @Nested
+  class FindPetsTests {
+    @Test
+    void shouldReturnAllPersistedPetsWithCorrectPagination() {
+      List<String> names = List.of("Rex", "Luna");
+      List<Pets> pets =
+          names.stream()
+              .map(
+                  name ->
+                      Pets.builder()
+                          .name(name)
+                          .status(PetStatus.AVAILABLE)
+                          .species(savedSpecies)
+                          .tags(List.of())
+                          .build())
+              .toList();
+
+      petsRepository.saveAll(pets);
+
+      ResponseEntity<PageResponseDTO<PetResponseDTO>> response =
+          restTemplate.exchange(
+              PETS_URL,
+              HttpMethod.GET,
+              null,
+              new ParameterizedTypeReference<PageResponseDTO<PetResponseDTO>>() {});
+
+      List<UUID> savedIds = pets.stream().map(Pets::getId).toList();
+
+      List<UUID> responseIds =
+          response.getBody().content().stream().map(PetResponseDTO::id).toList();
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertThat(responseIds).containsExactlyInAnyOrderElementsOf(savedIds);
+      assertEquals(DEFAULT_SIZE, response.getBody().size());
+      assertEquals(DEFAULT_PAGE, response.getBody().number());
+    }
+
+    @Test
+    void shouldReturnEmptyPageWhenNoPetsArePersisted() {
+      ResponseEntity<PageResponseDTO<PetResponseDTO>> response =
+          restTemplate.exchange(
+              PETS_URL,
+              HttpMethod.GET,
+              null,
+              new ParameterizedTypeReference<PageResponseDTO<PetResponseDTO>>() {});
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertThat(response.getBody().content()).isEmpty();
+      assertEquals(DEFAULT_SIZE, response.getBody().size());
+      assertEquals(DEFAULT_PAGE, response.getBody().number());
+    }
+
+    @Test
+    void shouldReturnSecondPageWithCorrectPagination() {
+      int numberPage = 1;
+      int sizePage = 3;
+
+      List<String> names = List.of("Rex", "Luna", "Max", "Mel");
+      List<Pets> pets =
+          names.stream()
+              .map(
+                  name ->
+                      Pets.builder()
+                          .name(name)
+                          .status(PetStatus.AVAILABLE)
+                          .species(savedSpecies)
+                          .tags(List.of())
+                          .build())
+              .toList();
+
+      petsRepository.saveAll(pets);
+
+      String url = PETS_URL + String.format("?page=%d&size=%d", numberPage, sizePage);
+
+      ResponseEntity<PageResponseDTO<PetResponseDTO>> response =
+          restTemplate.exchange(
+              url,
+              HttpMethod.GET,
+              null,
+              new ParameterizedTypeReference<PageResponseDTO<PetResponseDTO>>() {});
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertEquals(names.size(), response.getBody().totalElements());
+      assertEquals(numberPage, response.getBody().number());
+      assertEquals(sizePage, response.getBody().size());
+      assertThat(response.getBody().content()).hasSize(1);
     }
   }
 }
