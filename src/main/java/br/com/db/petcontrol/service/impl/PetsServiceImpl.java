@@ -1,8 +1,11 @@
 package br.com.db.petcontrol.service.impl;
 
+import br.com.db.petcontrol.dto.request.PageableRequestDTO;
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
+import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.exception.NotFoundException;
+import br.com.db.petcontrol.mapper.PageMapper;
 import br.com.db.petcontrol.mapper.PetsMapper;
 import br.com.db.petcontrol.model.Pets;
 import br.com.db.petcontrol.model.Species;
@@ -15,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +29,9 @@ public class PetsServiceImpl implements PetsService {
   private final SpeciesRepository speciesRepository;
   private final TagsRepository tagRepository;
   private final PetsMapper petsMapper;
+  private final PageMapper pageMapper;
 
+  @Override
   public PetResponseDTO create(PetRequestDTO dto) {
     List<String> errors = new ArrayList<>();
 
@@ -43,6 +49,13 @@ public class PetsServiceImpl implements PetsService {
     Pets pet = petsMapper.toEntity(dto, species, tags);
     Pets savedPet = petRepository.saveAndFlush(pet);
     return petsMapper.toResponse(savedPet);
+  }
+
+  @Override
+  public PageResponseDTO<PetResponseDTO> findAll(PageableRequestDTO pageable) {
+    Page<PetResponseDTO> page =
+        petRepository.findAll(pageMapper.toPageable(pageable)).map(petsMapper::toResponse);
+    return pageMapper.toPageResponseDTO(page);
   }
 
   private List<Tags> findTagsOrCollectErrors(List<UUID> ids, List<String> errors) {

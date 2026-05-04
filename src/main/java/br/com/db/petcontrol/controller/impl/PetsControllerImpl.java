@@ -1,7 +1,9 @@
 package br.com.db.petcontrol.controller.impl;
 
 import br.com.db.petcontrol.controller.PetsController;
+import br.com.db.petcontrol.dto.request.PageableRequestDTO;
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
+import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.service.PetsService;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +21,11 @@ public class PetsControllerImpl implements PetsController {
   public ResponseEntity<PetResponseDTO> create(PetRequestDTO dto) {
     PetResponseDTO response = petsService.create(dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  @Override
+  public ResponseEntity<PageResponseDTO<PetResponseDTO>> findAll(PageableRequestDTO pageable) {
+    PageResponseDTO<PetResponseDTO> response = petsService.findAll(pageable);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }
