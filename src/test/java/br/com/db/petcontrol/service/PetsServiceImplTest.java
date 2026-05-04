@@ -12,6 +12,7 @@ import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.exception.NotFoundException;
+import br.com.db.petcontrol.mapper.PageMapper;
 import br.com.db.petcontrol.mapper.PetsMapper;
 import br.com.db.petcontrol.mocks.PetsFixture;
 import br.com.db.petcontrol.mocks.SpeciesFixture;
@@ -43,12 +44,15 @@ class PetsServiceImplTest {
   @Mock private SpeciesRepository speciesRepository;
   @Mock private TagsRepository tagRepository;
   @Mock private PetsMapper petsMapper;
+  @Mock private PageMapper pageMapper;
 
   private PetsServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    service = new PetsServiceImpl(petRepository, speciesRepository, tagRepository, petsMapper);
+    service =
+        new PetsServiceImpl(
+            petRepository, speciesRepository, tagRepository, petsMapper, pageMapper);
   }
 
   @Nested
