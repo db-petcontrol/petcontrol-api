@@ -16,6 +16,7 @@ import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
+import br.com.db.petcontrol.exception.NotFoundException;
 import br.com.db.petcontrol.mocks.PageFixture;
 import br.com.db.petcontrol.mocks.PetsFixture;
 import br.com.db.petcontrol.service.PetsService;
@@ -43,6 +44,7 @@ class PetsControllerTest {
   @MockitoBean private PetsService petsService;
 
   private static final String PETS_URL = "/pets";
+  private static final String PET_ID_URL = PETS_URL + "/{id}";
 
   @Nested
   class CreatePetTests {
@@ -184,6 +186,45 @@ class PetsControllerTest {
           List.of(
               PetsFixture.responseDtoBuilder().build(), PetsFixture.responseDtoBuilder().build()),
           List.of());
+    }
+  }
+
+  @Nested
+  class FindPetTests {
+    @Test
+    void shouldReturnPetByIdSuccessfully() throws Exception {
+      PetResponseDTO response = PetsFixture.responseDtoBuilder().build();
+
+      when(petsService.find(response.id())).thenReturn(response);
+
+      mockMvc
+          .perform(get(PET_ID_URL, response.id()).contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().json(JsonUtils.convertToJson(response)));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenPetDoesNotExist() throws Exception {
+      UUID invalidId = UUID.randomUUID();
+      String errorMessage = "Pet not found";
+
+      when(petsService.find(invalidId)).thenThrow(new NotFoundException(errorMessage));
+
+      mockMvc
+          .perform(get(PET_ID_URL, invalidId).contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.messages[0]").value(errorMessage));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenIdIsInvalid() throws Exception {
+      String invalidId = "1";
+      String expectedMessage = "Valor inválido '1' para o parâmetro 'id'";
+
+      mockMvc
+          .perform(get(PET_ID_URL, invalidId).contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.messages[0]").value(expectedMessage));
     }
   }
 }

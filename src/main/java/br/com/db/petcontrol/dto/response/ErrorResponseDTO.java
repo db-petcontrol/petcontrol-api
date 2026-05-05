@@ -6,4 +6,4 @@ import java.util.List;
 @Schema(description = "Dados de resposta para erros da API")
 public record ErrorResponseDTO(
     @Schema(description = "Lista de mensagens que detallha os erros ocorridos")
-        List<String> mensagens) {}
+        List<String> messages) {}

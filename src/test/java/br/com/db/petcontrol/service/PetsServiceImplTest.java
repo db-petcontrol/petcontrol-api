@@ -272,4 +272,30 @@ class PetsServiceImplTest {
       assertEquals(DEFAULT_PAGE, response.number());
     }
   }
+
+  @Nested
+  class FindPetTests {
+    @Test
+    void shouldReturnPetByIdSuccessfully() {
+      Pets pet = PetsFixture.builder().build();
+
+      when(petRepository.findById(pet.getId())).thenReturn(Optional.of(pet));
+
+      PetResponseDTO result = service.find(pet.getId());
+
+      assertThat(result.id()).isEqualTo(pet.getId());
+      assertThat(result.name()).isEqualTo(pet.getName());
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenPetDoesNotExist() {
+      UUID petId = UUID.randomUUID();
+
+      when(petRepository.findById(petId)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.find(petId))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Pet not found");
+    }
+  }
 }

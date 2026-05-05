@@ -9,6 +9,7 @@ import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
+import br.com.db.petcontrol.mocks.PetsFixture;
 import br.com.db.petcontrol.model.Pets;
 import br.com.db.petcontrol.model.Species;
 import br.com.db.petcontrol.model.Tags;
@@ -41,6 +42,7 @@ class PetsIntegrationTest {
   @Autowired private TagsRepository tagsRepository;
 
   private static final String PETS_URL = "/pets";
+  private static final String PET_ID_URL = PETS_URL + "/{id}";
 
   private Species savedSpecies;
 
@@ -275,17 +277,7 @@ class PetsIntegrationTest {
     @Test
     void shouldReturnAllPersistedPetsWithCorrectPagination() {
       List<String> names = List.of("Rex", "Luna");
-      List<Pets> pets =
-          names.stream()
-              .map(
-                  name ->
-                      Pets.builder()
-                          .name(name)
-                          .status(PetStatus.AVAILABLE)
-                          .species(savedSpecies)
-                          .tags(List.of())
-                          .build())
-              .toList();
+      List<Pets> pets = names.stream().map(name -> builderWithoutId().name(name).build()).toList();
 
       petsRepository.saveAll(pets);
 
@@ -328,17 +320,7 @@ class PetsIntegrationTest {
       int sizePage = 3;
 
       List<String> names = List.of("Rex", "Luna", "Max", "Mel");
-      List<Pets> pets =
-          names.stream()
-              .map(
-                  name ->
-                      Pets.builder()
-                          .name(name)
-                          .status(PetStatus.AVAILABLE)
-                          .species(savedSpecies)
-                          .tags(List.of())
-                          .build())
-              .toList();
+      List<Pets> pets = names.stream().map(name -> builderWithoutId().name(name).build()).toList();
 
       petsRepository.saveAll(pets);
 
@@ -357,5 +339,29 @@ class PetsIntegrationTest {
       assertEquals(sizePage, response.getBody().size());
       assertThat(response.getBody().content()).hasSize(1);
     }
+  }
+
+  @Nested
+  class FindPetTests {
+    @Test
+    void shouldReturnPetByIdSuccessfully() {
+      Pets pet = builderWithoutId().build();
+      Pets savedPet = petsRepository.save(pet);
+
+      ResponseEntity<PetResponseDTO> response =
+          restTemplate.getForEntity(PET_ID_URL, PetResponseDTO.class, savedPet.getId());
+      PetResponseDTO currentPet = response.getBody();
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertThat(currentPet.id()).isEqualTo(savedPet.getId());
+      assertThat(currentPet.name()).isEqualTo(savedPet.getName());
+      assertThat(currentPet.species()).isEqualTo(savedPet.getSpecies().getName());
+      assertThat(currentPet.status()).isEqualTo(savedPet.getStatus());
+      assertThat(currentPet.tags()).isEmpty();
+    }
+  }
+
+  public Pets.PetsBuilder builderWithoutId() {
+    return PetsFixture.builder().id(null).species(savedSpecies);
   }
 }
