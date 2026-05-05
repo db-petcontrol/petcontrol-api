@@ -58,6 +58,14 @@ public class PetsServiceImpl implements PetsService {
     return pageMapper.toPageResponseDTO(page);
   }
 
+  @Override
+  public PetResponseDTO find(UUID id) {
+    return petRepository
+        .findById(id)
+        .map(petsMapper::toResponse)
+        .orElseThrow(() -> new NotFoundException("Pet not found"));
+  }
+
   private List<Tags> findTagsOrCollectErrors(List<UUID> ids, List<String> errors) {
     if (ids == null || ids.isEmpty()) {
       return List.of();
