@@ -1,11 +1,13 @@
 package br.com.db.petcontrol.controller;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -225,6 +227,80 @@ class PetsControllerTest {
           .perform(get(PET_ID_URL, invalidId).contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.messages[0]").value(expectedMessage));
+    }
+  }
+
+  @Nested
+  class UpdatePetTests {
+
+    @Test
+    void shouldUpdatePetSuccessfully() throws Exception {
+      UUID petId = UUID.randomUUID();
+
+      PetRequestDTO request =
+          PetsFixture.requestDtoBuilder().name("Rex").status(PetStatus.AVAILABLE).build();
+
+      PetResponseDTO response =
+          PetsFixture.responseDtoBuilder()
+              .id(petId)
+              .name("Rex Atualizado")
+              .status(PetStatus.ADOPTED)
+              .species("Cachorro")
+              .tags(List.of("Vacinado"))
+              .build();
+
+      when(petsService.update(petId, request)).thenReturn(response);
+
+      mockMvc
+          .perform(
+              put(PET_ID_URL, petId)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(JsonUtils.convertToJson(request)))
+          .andExpect(status().isOk())
+          .andExpect(content().json(JsonUtils.convertToJson(response)));
+
+      verify(petsService).update(petId, request);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUpdatingNonexistentPet() throws Exception {
+      UUID invalidId = UUID.randomUUID();
+      PetRequestDTO request = PetsFixture.requestDtoBuilder().build();
+      String errorMessage = "Pet not found";
+
+      when(petsService.update(invalidId, request)).thenThrow(new NotFoundException(errorMessage));
+
+      mockMvc
+          .perform(
+              put(PET_ID_URL, invalidId)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(JsonUtils.convertToJson(request)))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.messages[0]").value(errorMessage));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidPetRequestsProvider")
+    void shouldReturnBadRequestForInvalidRequest(PetRequestDTO invalidRequest) throws Exception {
+      UUID petId = UUID.randomUUID();
+
+      mockMvc
+          .perform(
+              put(PET_ID_URL, petId)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(JsonUtils.convertToJson(invalidRequest)))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.messages.length()").value(greaterThan(0)));
+    }
+
+    static Stream<PetRequestDTO> invalidPetRequestsProvider() {
+      return Stream.of(
+          PetsFixture.requestDtoBuilder().name(null).build(),
+          PetsFixture.requestDtoBuilder().name("a".repeat(21)).build(),
+          PetsFixture.requestDtoBuilder().name("Rex@#%$!").build(),
+          PetsFixture.requestDtoBuilder().name("Rex123").build(),
+          PetsFixture.requestDtoBuilder().specieId(null).build(),
+          PetsFixture.requestDtoBuilder().status(null).build());
     }
   }
 }

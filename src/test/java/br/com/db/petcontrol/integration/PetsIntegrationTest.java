@@ -10,6 +10,7 @@ import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.mocks.PetsFixture;
+import br.com.db.petcontrol.mocks.TagsFixture;
 import br.com.db.petcontrol.model.Pets;
 import br.com.db.petcontrol.model.Species;
 import br.com.db.petcontrol.model.Tags;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -358,6 +360,40 @@ class PetsIntegrationTest {
       assertThat(currentPet.species()).isEqualTo(savedPet.getSpecies().getName());
       assertThat(currentPet.status()).isEqualTo(savedPet.getStatus());
       assertThat(currentPet.tags()).isEmpty();
+    }
+  }
+
+  @Nested
+  class UpdatePetTests {
+    @Test
+    void shouldUpdatePetSuccessfully() {
+      Pets pet = builderWithoutId().name("Rex").status(PetStatus.AVAILABLE).build();
+      Pets savedPet = petsRepository.save(pet);
+
+      Tags tag = tagsRepository.save(TagsFixture.builder().id(null).build());
+
+      PetRequestDTO updateRequest =
+          PetRequestDTO.builder()
+              .name("Rex Atualizado")
+              .specieId(savedSpecies.getId())
+              .status(PetStatus.ADOPTED)
+              .tagsIds(List.of(tag.getId()))
+              .build();
+
+      HttpEntity<PetRequestDTO> requestEntity = new HttpEntity<>(updateRequest);
+
+      ResponseEntity<PetResponseDTO> response =
+          restTemplate.exchange(
+              PET_ID_URL, HttpMethod.PUT, requestEntity, PetResponseDTO.class, savedPet.getId());
+
+      PetResponseDTO updatedPet = response.getBody();
+
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertThat(updatedPet.name()).isEqualTo(updateRequest.name());
+      assertThat(updatedPet.status()).isEqualTo(updateRequest.status());
+      assertThat(updatedPet.species()).isEqualTo(savedSpecies.getName());
+      assertThat(updatedPet.tags()).hasSize(1);
+      assertThat(updatedPet.tags().getFirst()).isEqualTo(tag.getName());
     }
   }
 
