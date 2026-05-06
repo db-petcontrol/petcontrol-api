@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -296,6 +297,106 @@ class PetsServiceImplTest {
       assertThatThrownBy(() -> service.find(petId))
           .isInstanceOf(NotFoundException.class)
           .hasMessageContaining("Pet not found");
+    }
+  }
+
+  @Nested
+  class UpdatePetTests {
+    @Test
+    void shouldUpdatePetSuccessfully() {
+      UUID petId = UUID.randomUUID();
+      UUID speciesId = UUID.randomUUID();
+      Tags tag = TagsFixture.builder().build();
+      List<Tags> tags = List.of(tag);
+
+      Pets existingPet = PetsFixture.builder().id(petId).build();
+      Species species = SpeciesFixture.builder().id(speciesId).name("Cachorro").build();
+
+      PetRequestDTO updateRequest =
+          PetsFixture.requestDtoBuilder()
+              .name("Rex Atualizado")
+              .specieId(speciesId)
+              .status(PetStatus.ADOPTED)
+              .tagsIds(List.of(tag.getId()))
+              .build();
+
+      Pets updatedPet =
+          PetsFixture.builder()
+              .id(petId)
+              .name("Rex Atualizado")
+              .species(species)
+              .status(PetStatus.ADOPTED)
+              .tags(tags)
+              .build();
+
+      when(petRepository.findById(petId)).thenReturn(Optional.of(existingPet));
+      when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
+      when(tagRepository.findAllById(List.of(tag.getId()))).thenReturn(tags);
+      when(petRepository.saveAndFlush(any(Pets.class))).thenReturn(updatedPet);
+
+      PetResponseDTO response = service.update(petId, updateRequest);
+
+      assertThat(response.id()).isEqualTo(petId);
+      assertThat(response.name()).isEqualTo(updateRequest.name());
+      assertThat(response.status()).isEqualTo(updateRequest.status());
+      assertThat(response.species()).isEqualTo(species.getName());
+      assertThat(response.tags()).containsExactly(tag.getName());
+
+      verify(petRepository, times(1)).saveAndFlush(any(Pets.class));
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenPetDoesNotExist() {
+      UUID petId = UUID.randomUUID();
+      PetRequestDTO updateRequest = PetsFixture.requestDtoBuilder().build();
+
+      when(petRepository.findById(petId)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.update(petId, updateRequest))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Pet not found");
+
+      verify(petRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenSpeciesDoesNotExist() {
+      UUID petId = UUID.randomUUID();
+      UUID speciesId = UUID.randomUUID();
+
+      Pets existingPet = PetsFixture.builder().id(petId).build();
+      PetRequestDTO updateRequest = PetsFixture.requestDtoBuilder().specieId(speciesId).build();
+
+      when(petRepository.findById(petId)).thenReturn(Optional.of(existingPet));
+      when(speciesRepository.findById(speciesId)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.update(petId, updateRequest))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Species not found");
+
+      verify(petRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionWhenTagDoesNotExist() {
+      UUID petId = UUID.randomUUID();
+      UUID speciesId = UUID.randomUUID();
+      UUID tagId = UUID.randomUUID();
+
+      Pets existingPet = PetsFixture.builder().id(petId).build();
+      Species species = SpeciesFixture.builder().id(speciesId).build();
+      PetRequestDTO updateRequest =
+          PetsFixture.requestDtoBuilder().specieId(speciesId).tagsIds(List.of(tagId)).build();
+
+      when(petRepository.findById(petId)).thenReturn(Optional.of(existingPet));
+      when(speciesRepository.findById(speciesId)).thenReturn(Optional.of(species));
+      when(tagRepository.findAllById(List.of(tagId))).thenReturn(List.of());
+
+      assertThatThrownBy(() -> service.update(petId, updateRequest))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Tags not found");
+
+      verify(petRepository, never()).saveAndFlush(any());
     }
   }
 }
