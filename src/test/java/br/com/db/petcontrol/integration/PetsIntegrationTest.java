@@ -147,7 +147,7 @@ class PetsIntegrationTest {
           restTemplate.postForEntity(PETS_URL, request, PetResponseDTO.class);
 
       assertEquals(HttpStatus.CREATED, response.getStatusCode());
-      assertThat(response.getBody().species()).isEqualTo("Cachorro");
+      assertThat(response.getBody().species().name()).isEqualTo("Cachorro");
     }
 
     @Test
@@ -357,7 +357,7 @@ class PetsIntegrationTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertThat(currentPet.id()).isEqualTo(savedPet.getId());
       assertThat(currentPet.name()).isEqualTo(savedPet.getName());
-      assertThat(currentPet.species()).isEqualTo(savedPet.getSpecies().getName());
+      assertThat(currentPet.species().name()).isEqualTo(savedPet.getSpecies().getName());
       assertThat(currentPet.status()).isEqualTo(savedPet.getStatus());
       assertThat(currentPet.tags()).isEmpty();
     }
@@ -391,9 +391,9 @@ class PetsIntegrationTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertThat(updatedPet.name()).isEqualTo(updateRequest.name());
       assertThat(updatedPet.status()).isEqualTo(updateRequest.status());
-      assertThat(updatedPet.species()).isEqualTo(savedSpecies.getName());
+      assertThat(updatedPet.species().name()).isEqualTo(savedSpecies.getName());
       assertThat(updatedPet.tags()).hasSize(1);
-      assertThat(updatedPet.tags().getFirst()).isEqualTo(tag.getName());
+      assertThat(updatedPet.tags().getFirst().name()).isEqualTo(tag.getName());
     }
   }
 

@@ -17,10 +17,12 @@ import br.com.db.petcontrol.dto.request.PageableRequestDTO;
 import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PageResponseDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
+import br.com.db.petcontrol.dto.response.SpeciesResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.exception.NotFoundException;
 import br.com.db.petcontrol.mocks.PageFixture;
 import br.com.db.petcontrol.mocks.PetsFixture;
+import br.com.db.petcontrol.mocks.SpeciesFixture;
 import br.com.db.petcontrol.service.PetsService;
 import br.com.db.petcontrol.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,7 +122,8 @@ class PetsControllerTest {
     @Test
     void shouldReturnPetWithCorrectSpeciesInResponse() throws Exception {
       PetRequestDTO request = PetsFixture.requestDtoBuilder().build();
-      PetResponseDTO response = PetsFixture.responseDtoBuilder().species("Gato").build();
+      SpeciesResponseDTO speciesResponse = SpeciesFixture.dtoBuilder().name("Gato").build();
+      PetResponseDTO response = PetsFixture.responseDtoBuilder().species(speciesResponse).build();
 
       when(petsService.create(any(PetRequestDTO.class))).thenReturn(response);
 
@@ -130,7 +133,7 @@ class PetsControllerTest {
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isCreated())
-          .andExpect(jsonPath("$.species").value("Gato"));
+          .andExpect(jsonPath("$.species.name").value("Gato"));
     }
 
     @Test
@@ -245,8 +248,6 @@ class PetsControllerTest {
               .id(petId)
               .name("Rex Atualizado")
               .status(PetStatus.ADOPTED)
-              .species("Cachorro")
-              .tags(List.of("Vacinado"))
               .build();
 
       when(petsService.update(petId, request)).thenReturn(response);

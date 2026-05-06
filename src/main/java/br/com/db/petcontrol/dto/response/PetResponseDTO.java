@@ -14,6 +14,5 @@ public record PetResponseDTO(
         UUID id,
     @Schema(description = "Nome do pet", example = "Lily") String name,
     @Schema(description = "Status do pet", example = "AVAILABLE") PetStatus status,
-    @Schema(description = "Espécie do pet", example = "Gato") String species,
-    @Schema(description = "Tags do pet", example = "[\"castrado\", \"vacinado\"]")
-        List<String> tags) {}
+    @Schema(description = "Espécie do pet") SpeciesResponseDTO species,
+    @Schema(description = "Tags do pet") List<TagsResponseDTO> tags) {}

@@ -19,6 +19,8 @@ import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.exception.NotFoundException;
 import br.com.db.petcontrol.mapper.PageMapper;
 import br.com.db.petcontrol.mapper.PetsMapper;
+import br.com.db.petcontrol.mapper.SpeciesMapper;
+import br.com.db.petcontrol.mapper.TagsMapper;
 import br.com.db.petcontrol.mocks.PageFixture;
 import br.com.db.petcontrol.mocks.PetsFixture;
 import br.com.db.petcontrol.mocks.SpeciesFixture;
@@ -43,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -53,14 +56,21 @@ class PetsServiceImplTest {
   @Mock private TagsRepository tagRepository;
 
   private PetsMapper petsMapper;
+  private SpeciesMapper speciesMapper;
+  private TagsMapper tagsMapper;
   private PageMapper pageMapper;
 
   private PetsServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    petsMapper = Mappers.getMapper(PetsMapper.class);
     pageMapper = Mappers.getMapper(PageMapper.class);
+    petsMapper = Mappers.getMapper(PetsMapper.class);
+    speciesMapper = Mappers.getMapper(SpeciesMapper.class);
+    tagsMapper = Mappers.getMapper(TagsMapper.class);
+
+    ReflectionTestUtils.setField(petsMapper, "speciesMapper", speciesMapper);
+    ReflectionTestUtils.setField(petsMapper, "tagsMapper", tagsMapper);
 
     service =
         new PetsServiceImpl(
@@ -85,7 +95,7 @@ class PetsServiceImplTest {
 
       assertThat(result).isNotNull();
       assertThat(result.name()).isEqualTo(expectedPet.getName());
-      assertThat(result.species()).isEqualTo("Cachorro");
+      assertThat(result.species().name()).isEqualTo("Cachorro");
     }
 
     @Test
@@ -339,8 +349,8 @@ class PetsServiceImplTest {
       assertThat(response.id()).isEqualTo(petId);
       assertThat(response.name()).isEqualTo(updateRequest.name());
       assertThat(response.status()).isEqualTo(updateRequest.status());
-      assertThat(response.species()).isEqualTo(species.getName());
-      assertThat(response.tags()).containsExactly(tag.getName());
+      assertThat(response.species().name()).isEqualTo(species.getName());
+      assertThat(response.tags()).hasSameSizeAs(tags);
 
       verify(petRepository, times(1)).saveAndFlush(any(Pets.class));
     }
