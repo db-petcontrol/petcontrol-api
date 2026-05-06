@@ -10,7 +10,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+    componentModel = "spring",
+    uses = {SpeciesMapper.class, TagsMapper.class})
 public interface PetsMapper {
 
   @Mapping(target = "id", ignore = true)
@@ -23,14 +25,5 @@ public interface PetsMapper {
   @Mapping(target = "tags", ignore = true)
   void toUpdateEntity(PetRequestDTO dto, @MappingTarget Pets pet);
 
-  @Mapping(target = "species", source = "species.name")
-  @Mapping(target = "tags", source = "tags")
   PetResponseDTO toResponse(Pets pet);
-
-  default List<String> map(List<Tags> tags) {
-    if (tags == null) {
-      return null;
-    }
-    return tags.stream().map(Tags::getName).toList();
-  }
 }

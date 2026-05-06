@@ -4,6 +4,7 @@ import br.com.db.petcontrol.dto.request.PetRequestDTO;
 import br.com.db.petcontrol.dto.response.PetResponseDTO;
 import br.com.db.petcontrol.enums.PetStatus;
 import br.com.db.petcontrol.model.Pets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public final class PetsFixture {
         .name(DEFAULT_NAME)
         .status(DEFAULT_STATUS)
         .species(SpeciesFixture.builder().build())
-        .tags(List.of());
+        .tags(new ArrayList<>());
   }
 
   public static PetRequestDTO.PetRequestDTOBuilder requestDtoBuilder() {
@@ -36,7 +37,7 @@ public final class PetsFixture {
         .id(UUID.randomUUID())
         .name(DEFAULT_NAME)
         .status(DEFAULT_STATUS)
-        .species("Cachorro")
+        .species(SpeciesFixture.dtoBuilder().build())
         .tags(List.of());
   }
 }
