@@ -25,6 +25,12 @@ public class PetsControllerImpl implements PetsController {
   }
 
   @Override
+  public ResponseEntity<PetResponseDTO> update(UUID id, PetRequestDTO dto) {
+    PetResponseDTO response = petsService.update(id, dto);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @Override
   public ResponseEntity<PageResponseDTO<PetResponseDTO>> findAll(PageableRequestDTO pageable) {
     PageResponseDTO<PetResponseDTO> response = petsService.findAll(pageable);
     return ResponseEntity.status(HttpStatus.OK).body(response);
