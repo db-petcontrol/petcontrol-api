@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -33,9 +34,62 @@ public interface PetsController {
           @Content(
               mediaType = "application/json",
               schema = @Schema(implementation = PetResponseDTO.class)))
-  @ApiResponse(responseCode = "404", description = "Espécie não encontrada")
+  @ApiResponse(
+      responseCode = "400",
+      description = "Dados inválidos",
+      content =
+          @Content(
+              schema = @Schema(implementation = ErrorResponseDTO.class),
+              examples =
+                  @ExampleObject(
+                      name = "Dados inválidos",
+                      value =
+                          "{\"messages\": [\"Pet name must not be blank\", \"Specie ID must not be null\"]}")))
+  @ApiResponse(
+      responseCode = "404",
+      description = "Espécie ou Tags não encontradas",
+      content =
+          @Content(
+              schema = @Schema(implementation = ErrorResponseDTO.class),
+              examples =
+                  @ExampleObject(
+                      name = "Não encontrado",
+                      value = "{\"messages\": [\"Specie not found\"]}")))
   @PostMapping
   ResponseEntity<PetResponseDTO> create(@Valid @RequestBody PetRequestDTO dto);
+
+  @Operation(summary = "Atualizar pet", description = "Atualiza um pet no sistema")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Pet atualizado com sucesso",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = PetResponseDTO.class)))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Dados inválidos",
+      content =
+          @Content(
+              schema = @Schema(implementation = ErrorResponseDTO.class),
+              examples =
+                  @ExampleObject(
+                      name = "Dados inválidos",
+                      value =
+                          "{\"messages\": [\"Pet name must not be blank\", \"Specie ID must not be null\"]}")))
+  @ApiResponse(
+      responseCode = "404",
+      description = "Pet não encontrado",
+      content =
+          @Content(
+              schema = @Schema(implementation = ErrorResponseDTO.class),
+              examples =
+                  @ExampleObject(
+                      name = "Não encontrado",
+                      value = "{\"messages\": [\"Pet not found\"]}")))
+  @PutMapping("/{id}")
+  ResponseEntity<PetResponseDTO> update(
+      @PathVariable UUID id, @Valid @RequestBody PetRequestDTO dto);
 
   @Operation(summary = "Buscar pets", description = "Retorna uma lista paginada de pets")
   @ApiResponse(
@@ -46,7 +100,7 @@ public interface PetsController {
   ResponseEntity<PageResponseDTO<PetResponseDTO>> findAll(
       @ParameterObject PageableRequestDTO pageable);
 
-  @Operation(summary = "Buscar um pet", description = "Busca um pet pelo seu id")
+  @Operation(summary = "Buscar pet", description = "Busca um pet pelo seu id")
   @ApiResponse(
       responseCode = "200",
       description = "Pet buscado com sucesso",

@@ -16,10 +16,12 @@ import br.com.db.petcontrol.repository.TagsRepository;
 import br.com.db.petcontrol.service.PetsService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,20 +37,32 @@ public class PetsServiceImpl implements PetsService {
   public PetResponseDTO create(PetRequestDTO dto) {
     List<String> errors = new ArrayList<>();
 
-    Species species = speciesRepository.findById(dto.specieId()).orElse(null);
-    if (species == null) {
-      errors.add("Species not found: " + dto.specieId());
-    }
-
+    Species species = findSpeciesOrCollectErrors(dto.specieId(), errors);
     List<Tags> tags = findTagsOrCollectErrors(dto.tagsIds(), errors);
 
-    if (!errors.isEmpty()) {
-      throw new NotFoundException(errors);
-    }
+    throwingNotFoundException(errors);
 
     Pets pet = petsMapper.toEntity(dto, species, tags);
     Pets savedPet = petRepository.saveAndFlush(pet);
     return petsMapper.toResponse(savedPet);
+  }
+
+  @Override
+  @Transactional
+  public PetResponseDTO update(UUID id, PetRequestDTO dto) {
+    List<String> errors = new ArrayList<>();
+
+    Pets pet = findPet(id);
+    Species species = findSpeciesOrCollectErrors(dto.specieId(), errors);
+    List<Tags> tags = findTagsOrCollectErrors(dto.tagsIds(), errors);
+
+    throwingNotFoundException(errors);
+
+    petsMapper.toUpdateEntity(dto, pet);
+    updateRelationship(pet, species, tags);
+
+    Pets updatedPet = petRepository.saveAndFlush(pet);
+    return petsMapper.toResponse(updatedPet);
   }
 
   @Override
@@ -60,28 +74,51 @@ public class PetsServiceImpl implements PetsService {
 
   @Override
   public PetResponseDTO find(UUID id) {
-    return petRepository
-        .findById(id)
-        .map(petsMapper::toResponse)
-        .orElseThrow(() -> new NotFoundException("Pet not found"));
+    return petsMapper.toResponse(findPet(id));
+  }
+
+  private void updateRelationship(Pets pet, Species species, List<Tags> tags) {
+    pet.setSpecies(species);
+
+    pet.getTags().clear();
+    pet.getTags().addAll(tags);
+  }
+
+  private void throwingNotFoundException(List<String> errors) {
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(errors);
+    }
+  }
+
+  private Species findSpeciesOrCollectErrors(UUID specieId, List<String> errors) {
+    Species species = speciesRepository.findById(specieId).orElse(null);
+
+    if (Objects.isNull(species)) {
+      errors.add("Species not found: " + specieId);
+    }
+
+    return species;
   }
 
   private List<Tags> findTagsOrCollectErrors(List<UUID> ids, List<String> errors) {
-    if (ids == null || ids.isEmpty()) {
+    if (Objects.isNull(ids) || ids.isEmpty()) {
       return List.of();
     }
 
     List<Tags> foundTags = tagRepository.findAllById(ids);
 
     if (foundTags.size() != ids.size()) {
-      List<UUID> notFoundIds =
-          ids.stream()
-              .filter(id -> foundTags.stream().noneMatch(tag -> tag.getId().equals(id)))
-              .toList();
+      List<UUID> foundIds = foundTags.stream().map(Tags::getId).toList();
+
+      List<UUID> notFoundIds = ids.stream().filter(id -> !foundIds.contains(id)).toList();
 
       errors.add("Tags not found: " + notFoundIds);
     }
 
     return foundTags;
+  }
+
+  private Pets findPet(UUID id) {
+    return petRepository.findById(id).orElseThrow(() -> new NotFoundException("Pet not found"));
   }
 }

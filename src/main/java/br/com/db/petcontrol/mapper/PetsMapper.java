@@ -8,6 +8,7 @@ import br.com.db.petcontrol.model.Tags;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface PetsMapper {
@@ -16,6 +17,11 @@ public interface PetsMapper {
   @Mapping(target = "name", source = "dto.name")
   @Mapping(target = "status", source = "dto.status")
   Pets toEntity(PetRequestDTO dto, Species species, List<Tags> tags);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "species", ignore = true)
+  @Mapping(target = "tags", ignore = true)
+  void toUpdateEntity(PetRequestDTO dto, @MappingTarget Pets pet);
 
   @Mapping(target = "species", source = "species.name")
   @Mapping(target = "tags", source = "tags")

@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface PetsService {
   PetResponseDTO create(PetRequestDTO dto);
 
+  PetResponseDTO update(UUID id, PetRequestDTO dto);
+
   PageResponseDTO<PetResponseDTO> findAll(PageableRequestDTO pageable);
 
   PetResponseDTO find(UUID id);
