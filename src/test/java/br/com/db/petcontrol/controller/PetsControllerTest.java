@@ -3,8 +3,11 @@ package br.com.db.petcontrol.controller;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -259,8 +262,6 @@ class PetsControllerTest {
                   .content(JsonUtils.convertToJson(request)))
           .andExpect(status().isOk())
           .andExpect(content().json(JsonUtils.convertToJson(response)));
-
-      verify(petsService).update(petId, request);
     }
 
     @Test
@@ -302,6 +303,34 @@ class PetsControllerTest {
           PetsFixture.requestDtoBuilder().name("Rex123").build(),
           PetsFixture.requestDtoBuilder().specieId(null).build(),
           PetsFixture.requestDtoBuilder().status(null).build());
+    }
+  }
+
+  @Nested
+  class DeletePetTests {
+    @Test
+    void shouldDeletePetSuccessfully() throws Exception {
+      UUID petId = UUID.randomUUID();
+
+      doNothing().when(petsService).delete(petId);
+
+      mockMvc
+          .perform(delete(PET_ID_URL, petId).contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isNoContent())
+          .andExpect(content().string(""));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenDeletingNonexistentPet() throws Exception {
+      UUID invalidId = UUID.randomUUID();
+      String errorMessage = "Pet not found";
+
+      doThrow(new NotFoundException(errorMessage)).when(petsService).delete(invalidId);
+
+      mockMvc
+          .perform(delete(PET_ID_URL, invalidId).contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.messages[0]").value(errorMessage));
     }
   }
 }

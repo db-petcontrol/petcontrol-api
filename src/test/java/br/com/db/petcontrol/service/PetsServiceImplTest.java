@@ -409,4 +409,31 @@ class PetsServiceImplTest {
       verify(petRepository, never()).saveAndFlush(any());
     }
   }
+
+  @Nested
+  class DeletePetTests {
+    @Test
+    void shouldDeletePetSuccessfully() {
+      Pets existingPet = PetsFixture.builder().build();
+
+      when(petRepository.findById(existingPet.getId())).thenReturn(Optional.of(existingPet));
+
+      service.delete(existingPet.getId());
+
+      verify(petRepository, times(1)).delete(existingPet);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenDeletingNonexistentPet() {
+      UUID invalidId = UUID.randomUUID();
+
+      when(petRepository.findById(invalidId)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> service.delete(invalidId))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Pet not found");
+
+      verify(petRepository, never()).delete(any());
+    }
+  }
 }

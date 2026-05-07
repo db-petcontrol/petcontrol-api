@@ -66,6 +66,13 @@ public class PetsServiceImpl implements PetsService {
   }
 
   @Override
+  @Transactional
+  public void delete(UUID id) {
+    Pets pet = findPet(id);
+    petRepository.delete(pet);
+  }
+
+  @Override
   public PageResponseDTO<PetResponseDTO> findAll(PageableRequestDTO pageable) {
     Page<PetResponseDTO> page =
         petRepository.findAll(pageMapper.toPageable(pageable)).map(petsMapper::toResponse);

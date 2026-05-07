@@ -31,6 +31,12 @@ public class PetsControllerImpl implements PetsController {
   }
 
   @Override
+  public ResponseEntity<Void> delete(UUID id) {
+    petsService.delete(id);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  @Override
   public ResponseEntity<PageResponseDTO<PetResponseDTO>> findAll(PageableRequestDTO pageable) {
     PageResponseDTO<PetResponseDTO> response = petsService.findAll(pageable);
     return ResponseEntity.status(HttpStatus.OK).body(response);

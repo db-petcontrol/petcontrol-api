@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -90,6 +91,21 @@ public interface PetsController {
   @PutMapping("/{id}")
   ResponseEntity<PetResponseDTO> update(
       @PathVariable UUID id, @Valid @RequestBody PetRequestDTO dto);
+
+  @Operation(summary = "Deletar pet", description = "Deletar um pet pelo seu id")
+  @ApiResponse(responseCode = "204", description = "Pet deletado com sucesso")
+  @ApiResponse(
+      responseCode = "404",
+      description = "Pet não encontrado",
+      content =
+          @Content(
+              schema = @Schema(implementation = ErrorResponseDTO.class),
+              examples =
+                  @ExampleObject(
+                      name = "Pet não encontrado",
+                      value = "{\"messages\": [\"Pet not found\"]}")))
+  @DeleteMapping("/{id}")
+  ResponseEntity<Void> delete(@PathVariable UUID id);
 
   @Operation(summary = "Buscar pets", description = "Retorna uma lista paginada de pets")
   @ApiResponse(

@@ -397,6 +397,21 @@ class PetsIntegrationTest {
     }
   }
 
+  @Nested
+  class DeletePetTests {
+    @Test
+    void shouldDeletePetSuccessfully() {
+      Pets pet = builderWithoutId().build();
+      Pets savedPet = petsRepository.save(pet);
+
+      ResponseEntity<Void> response =
+          restTemplate.exchange(PET_ID_URL, HttpMethod.DELETE, null, Void.class, savedPet.getId());
+
+      assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+      assertThat(petsRepository.findById(savedPet.getId())).isEmpty();
+    }
+  }
+
   public Pets.PetsBuilder builderWithoutId() {
     return PetsFixture.builder().id(null).species(savedSpecies);
   }
