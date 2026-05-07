@@ -11,6 +11,8 @@ public interface PetsService {
 
   PetResponseDTO update(UUID id, PetRequestDTO dto);
 
+  void delete(UUID id);
+
   PageResponseDTO<PetResponseDTO> findAll(PageableRequestDTO pageable);
 
   PetResponseDTO find(UUID id);
