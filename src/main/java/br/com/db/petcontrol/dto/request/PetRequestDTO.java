@@ -14,7 +14,7 @@ import lombok.Builder;
 public record PetRequestDTO(
     @Pattern(regexp = "^[\\p{L}\\s]+$", message = "The name must contain only letters and spaces")
         @NotBlank(message = "Pet name must not be blank")
-        @Size(max = 20, message = "Pet name must be at most 20 characters long")
+        @Size(max = 64, message = "Pet name must be at most 64 characters long")
         @Schema(description = "Nome do pet", example = "Lily")
         String name,
     @NotNull(message = "Specie ID must not be null")
