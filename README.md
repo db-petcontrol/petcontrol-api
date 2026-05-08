@@ -1,10 +1,10 @@
 # 🐾 PetControl API
 
-⛔ *Seção em construção*
+O PetControl é uma API REST desenvolvida em Spring Boot para cadastro e gerenciamento de pets disponíveis para adoção. O sistema permite criar, listar, consultar, editar e remover pets, fornecendo uma arquitetura organizada, documentação interativa e integração com aplicações frontend.
 
 <br>
 
-🔗 API disponível em produção: [link](https://petcontrol-api-h7vz.onrender.com/actuator/health)
+🔗 Disponível em produção (Swagger/OpenAPI): [https://petcontrol-api-h7vz.onrender.com/swagger-ui/index.html](https://petcontrol-api-h7vz.onrender.com/swagger-ui/index.html)
 
 *⚠️ A aplicação pode levar alguns segundos para responder na primeira requisição devido ao cold start da plataforma.*
 
@@ -14,43 +14,45 @@
 
 Este projeto possui uma interface web desenvolvida separadamente para consumo da API:
 
-🔗 Frontend: [link](https://petcontrol-app.onrender.com)
+🔗 Frontend (Produção): [https://petcontrol-app.onrender.com](https://petcontrol-app.onrender.com)
 
-🔗 Repositório: [link](https://github.com/db-petcontrol/petcontrol-app)
+🔗 Repositório: [https://github.com/db-petcontrol/petcontrol-app](https://github.com/db-petcontrol/petcontrol-app)
 
 
 <br>
 
 ## ✨ Principais funcionalidade
-⛔ *Seção em construção*
+- Cadastro de pets com validação de dados
+- Listagem paginada de pets ordenados por nome
+- Visualização detalhada de um pet por ID
+- Edição de informações de pets cadastrados
+- Exclusão de pets
+- Regras de validação para dados do pet (campos obrigatórios, caracteres válidos e tamanho)
+- Testes unitários e de integração.
 
 <br>
 
 ## 🛠️ Tecnologias utilizadas
 
-### Backend
-- ☕ Java 21 — linguagem principal da aplicação
-- 🍃 Spring Boot — framework para API REST
-- 💾 PostgreSQL — banco relacional principal
-- 💾 H2 Database — banco em memória para testes e desenvolvimento
-- 🔁 MapStruct — mapeamento entre DTOs e entidades
-- 📦 Lombok — redução de boilerplate no código
+| Tecnologia        | Categoria                |
+| ----------------- | ------------------------ |
+| Java              | Linguagem                |
+| Spring Boot       | Framework                |
+| PostgreSQL        | Banco de Dados           |
+| H2 Database       | Banco em Memória         |
+| MapStruct         | Mapeamento               |
+| Lombok            | Redução de Boilerplate   |
+| Docker            | Containerização          |
+| Flyway            | Migrations               |
+| GitHub Actions    | CI/CD                    |
+| Git Hooks         | Validações Locais        |
+| JUnit             | Testes Unitários         |
+| Mockito           | Mocking                  |
+| JaCoCo            | Cobertura de Testes      |
+| Checkstyle        | Padronização de Código   |
+| Spotless          | Formatação               |
+| Swagger / OpenAPI | Documentação da API REST |
 
-### Infraestrutura & Build
-- 🐳 Docker — containerização da aplicação e padronização do ambiente
-- 🪽 Flyway — versionamento e controle de migrations do banco de dados
-- ⚙️ GitHub Actions — automação de CI/CD (build, testes e validações)
-- 🪝 Git Hooks — validações locais antes de commits (ex: lint e padrões de código)
-
-### Qualidade de Código
-- 🧪 JUnit — framework principal para testes unitários
-- 🧪 Mockito — criação de mocks para testes isolados
-- 📊 JaCoCo — análise e relatório de cobertura de testes
-- 🧹 Checkstyle — validação de padrões de código seguindo boas práticas de estilo Java
-- 🎨 Spotless — formatação automática do código baseada no Google Java Format
-
-### Documentação
-- 📄 Swagger / OpenAPI — documentação interativa e explorável da API REST
 
 <br>
 
