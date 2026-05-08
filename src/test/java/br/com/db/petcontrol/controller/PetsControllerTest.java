@@ -298,7 +298,7 @@ class PetsControllerTest {
     static Stream<PetRequestDTO> invalidPetRequestsProvider() {
       return Stream.of(
           PetsFixture.requestDtoBuilder().name(null).build(),
-          PetsFixture.requestDtoBuilder().name("a".repeat(21)).build(),
+          PetsFixture.requestDtoBuilder().name("a".repeat(65)).build(),
           PetsFixture.requestDtoBuilder().name("Rex@#%$!").build(),
           PetsFixture.requestDtoBuilder().name("Rex123").build(),
           PetsFixture.requestDtoBuilder().specieId(null).build(),

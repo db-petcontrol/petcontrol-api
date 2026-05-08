@@ -6,7 +6,7 @@ COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
 PROJECT_KEY="PETCONTROL"
 
-REGEX="^\[$PROJECT_KEY-[0-9]{3}\] (feat|hotfix|fix|test|docs|chore|refactor|build): .+"
+REGEX="^\[$PROJECT_KEY(-M)?-[0-9]{3}\] (feat|hotfix|fix|test|docs|chore|refactor|build): .+"
 
 if [[ ! $COMMIT_MSG =~ $REGEX ]]; then
     echo "[ERROR] Invalid commit message format."
